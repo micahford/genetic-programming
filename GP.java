@@ -10,7 +10,6 @@ public class GP {
 	private static Node<String> rootNode;
 
 	public GP(String rootName) {
-
 	}
 
 	public static class Node<T> {
@@ -27,7 +26,7 @@ public class GP {
 	}
 	
 	//returns a string representation of a random double between -5 and +5, or x.
-	private static String randNum(int x) {
+	private static String randNum() {
 		Random r = new Random();
 		if(r.nextDouble()<0.5){
 			return "x";
@@ -35,40 +34,37 @@ public class GP {
 		else {
 			return String.format("%.2f",r.nextInt(10)-5 + r.nextDouble());
 		}
-		
 	}
 
-	public Node<String> createBinaryTree(int param){
+	public Node<String> createBinaryTree(){
 		rootNode = new Node<String>();
 		rootNode.depthFromRoot = 0;
 		rootNode.value =randOperator();
 		
 		Node<String> curr = rootNode;
-		treeHelper(curr, curr.depthFromRoot, param);
+		treeHelper(curr, curr.depthFromRoot);
 		return rootNode;
-		
 	}
 	
-	public static void treeHelper(Node<String> currentNode, int depth, int x){
+	public static void treeHelper(Node<String> currentNode, int depth){
 		if(depth == maxdepth){
 			return;
 		}else{
 			Node<String> n1 = new Node<String>();  
-			if(depth == maxdepth-1){n1.value = randNum(x);}
+			if(depth == maxdepth-1){n1.value = randNum();}
 			else {n1.value = randOperator();}	
 			n1.parent = currentNode;
 			n1.depthFromRoot = currentNode.depthFromRoot+1;
 			currentNode.children[0] = n1;
-			treeHelper(n1, n1.depthFromRoot, x);
+			treeHelper(n1, n1.depthFromRoot);
 			
 			Node<String> n2 = new Node<String>();
-			if(depth == maxdepth-1){n2.value = randNum(x);}
+			if(depth == maxdepth-1){n2.value = randNum();}
 			else {n2.value = randOperator();}			
 			n2.parent = currentNode;
 			n2.depthFromRoot = currentNode.depthFromRoot+1;
 			currentNode.children[1] = n2;
-			treeHelper(n2, n2.depthFromRoot, x);
-		
+			treeHelper(n2, n2.depthFromRoot);
 		}
 	}
 
@@ -96,16 +92,16 @@ public class GP {
 	}
 
 	//This method actually calculates the value of a tree. It takes the head node of the tree as input.
-	private static double valueOfTree(Node<String> head, int x){
+	private static double valueOfTree(Node<String> head, double d){
 		valueStack = new Stack<String>(); //resets the "valueStack"
-		change_node(head, "x", Integer.toString(x)); //change all the blank x's to the string representation of the parameter for the function.
+		change_node(head, "x", Double.toString(d)); //change all the blank x's to the string representation of the parameter for the function.
 		
 		valueHelper(head, 0); //Now, "loads" the value stack.
 		reverseStack(); //Now, reverses the value stack.
 
 		double total = calculateStack(); //now, convert from postfix (valueStack) to an infix and calculate.\
 		printTree(head);
-		change_node(head, Integer.toString(x), "x"); //now, change all the parameter values back to x's (so that the same tree can be called for different values of the paremeter).
+		change_node(head, Double.toString(d), "x"); //now, change all the parameter values back to x's (so that the same tree can be called for different values of the paremeter).
 		return total;
 	}
 	
@@ -121,24 +117,19 @@ public class GP {
 			//call method on right child.
 			change_node_helper(currentNode.children[1], oldValue, newValue);
 			//**make actual replacement** from old value to new value.
-			if(currentNode.value.equals(oldValue)) currentNode.value = newValue;
+			if(currentNode.value.equals(oldValue)) {currentNode.value = newValue;}
 			
 			// now call method on left child
 			change_node_helper(currentNode.children[0], oldValue, newValue);
 		}
-
 	}
 
 	//reverses valueStack. very simple.
 	private static void reverseStack(){
 		Queue<String> tempQueue = new LinkedList<String>();
 		int size = valueStack.size();
-		for(int i = 0; i< size; i ++){
-			tempQueue.add(valueStack.pop());
-		}
-		for(int i = 0; i < size; i++){
-			valueStack.push(tempQueue.poll());
-		}
+		for(int i = 0; i< size; i ++){ tempQueue.add(valueStack.pop()); }
+		for(int i = 0; i < size; i++){ valueStack.push(tempQueue.poll()); }
 	}
 	
 	/*
@@ -201,20 +192,16 @@ public class GP {
 		}
 	}
 	
-	
 	public static void main(String args[]) {
 		GP gp = new GP("+");	
 		
 		int x = 2; // **the parameter to our tree**.
 		
-		Node<String> foo = gp.createBinaryTree(x);
-		printTree(foo); //prints tree with x's.
-		System.out.printf("value of tree for parameter %d : %f\n", 2, valueOfTree(foo, 2));
-		//printTree(foo);
-		System.out.printf("value of tree for parameter %d : %f\n", 3, valueOfTree(foo, 3));
-		//printTree(foo);
-
-
+		Node<String> foo = gp.createBinaryTree();
 		
+		printTree(foo); //prints tree with x's.
+		
+		System.out.printf("value of tree for parameter %d : %f\n", 2, valueOfTree(foo, 2.5));
+		System.out.printf("value of tree for parameter %d : %f\n", 3, valueOfTree(foo, 3));
 	}
 }
