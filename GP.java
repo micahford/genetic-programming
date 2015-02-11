@@ -1,11 +1,15 @@
 import java.awt.List;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.Stack;
+import java.util.TreeMap;
 //represents a tree.
 public class GP {
 	private static int maxdepth = 2;
@@ -64,7 +68,7 @@ public class GP {
 	}
 	//calls helper method (recursive method) to print tree.
 	public static void printTree(Node<String> n){
-		System.out.println("Current Tree: \n\n");
+		//System.out.println("Current Tree: \n\n");
 		printHelper(n, 0);
 	}
 	//performs inorder traversal, prints off (sideways).
@@ -90,7 +94,7 @@ public class GP {
 		valueHelper(head, 0); //Now, "loads" the value stack.
 		reverseStack(); //Now, reverses the value stack.
 		double total = calculateStack(); //now, convert from postfix (valueStack) to an infix and calculate.\
-		printTree(head);
+		//printTree(head);
 		change_node(head, Double.toString(d), "x"); //now, change all the parameter values back to x's (so that the same tree can be called for different values of the paremeter).
 		return total;
 	}
@@ -189,7 +193,7 @@ public class GP {
 			x+= .01;
 		}
 		score = sumOfVariancesSq;
-		//score = Math.sqrt(sumOfVariancesSq); 
+		
 			
 		return score;
 	}
@@ -197,15 +201,14 @@ public class GP {
 	//takes 2 trees, randomly selects one child node from each, and combines those children using one of the parent trees
 	//root node values, chosen randomly
 	private Node<String>[] makeChildren(Node<String> parent1, Node<String> parent2){
-		//change_node(parent1, "x", )
+		
 		Node<String>[] children = new Node[2];;
-		//Random rn = new Random();
-		//int num = rn.nextInt(1 - 0 + 1);
+		
 		String val1 = parent1.value;
 		String val2 = parent2.value;
 		Node<String> newRoot1 = new Node<String>();
 		Node<String> newRoot2 = new Node<String>();
-		//if (num == 0){
+		
 			newRoot1.value = val1;
 			newRoot1.children[0] = parent1.children[0];
 			newRoot1.children[1] = parent2.children[0];
@@ -217,7 +220,7 @@ public class GP {
 			newRoot2.children[1] = parent1.children[1];
 			parent1.children[1].parent = newRoot2;
 			parent2.children[1].parent = newRoot2;
-		//}
+		
 			children[0] = newRoot1;
 			children[1] = newRoot2;
 		return children;
@@ -225,37 +228,31 @@ public class GP {
 	
 	
 	public static void main(String args[]) throws FileNotFoundException {
-		GP gp = new GP("+");
-		GP gp2 = new GP("-");
+		//GP gp = new GP("+");
+		//GP gp2 = new GP("-");
+		int numTrees = 100;
+		double totalScore = 0.0;
 		
+		
+		Map<Double, Node<String>> reciprocalMap = new TreeMap<Double, Node<String>>();
+	
+		for (int i=0; i<numTrees;i++){
+			GP gp = new GP("+");
+			Node<String> tree = gp.createBinaryTree();
+			double score = 1.0/gp.fitnessScore(tree);
+		
+			totalScore += score;
+			
+			reciprocalMap.put(totalScore, tree);			
+			
+			
+		}
+		Random rn = new Random();
+
+		double num = rn.nextDouble()*totalScore;
 		int x = 2; // **the parameter to our tree**.
-		Node<String> foo = gp.createBinaryTree();
-		//printTree(foo); //prints tree with x's.
-		//System.out.printf("value of tree for parameter %d : %f\n", 2, valueOfTree(foo, 2.5));
-		//System.out.printf("value of tree for parameter %d : %f\n", 3, valueOfTree(foo, 3));
-		
-		//GP gp1 = new GP("*");
-		Node<String> foo1 = gp2.createBinaryTree();
-		//System.out.printf("value of tree2 for parameter %d : %f\n", 3, valueOfTree(foo1, 3));
-		Node<String>[] children = gp.makeChildren(foo, foo1);
-		//foo1 = children[0];
-		//System.out.printf("Parent 1:");
-		//printTree(foo);
-		//System.out.printf("Parent 2:");
-		//printTree(foo1);
-		//System.out.printf("Child 1:");
-		//printTree(children[0]);
-		//System.out.printf("Child 2:");
-		//printTree(children[1]);
-		
-		//children[1] = change_node(children[1], "x", "3");
-		
-		System.out.println(gp.fitnessScore(foo));
-		
-		//System.out.printf("Value of Child 1:");
-		//System.out.println(valueOfTree(foo,3));
-		
-		//System.out.printf("value of child1 for parameter %d : %f\n", 3, valueOfTree(children[0], 3));
-		//System.out.printf("value of child2 for parameter %d : %f\n", 3, valueOfTree(children[1], 3));
+//		Node<String> foo = gp.createBinaryTree();
+//		//printTree(foo); //prints tree with x's.
+
 	}
 }
