@@ -247,32 +247,55 @@ public class GP {
 		return score;
 	}
 
-	// takes 2 trees, and returns the 2 children created from them.
-	private static Node<String>[] makeChildren(Node<String> parent1,
-			Node<String> parent2) {
+// takes 2 trees, picks a random point on each to split them, 
+	//and mixes the partial trees to create 2 children
+	private static Node<String>[] makeChildren(Node<String> p1,
+			Node<String> p2) {
 
 		Node<String>[] children = new Node[2];
+		Random r = new Random();
+		int p1Cutoff = r.nextInt((p1.numNodes - 0) + 1);
+		int p2Cutoff = r.nextInt((p2.numNodes - 0) + 1);
+		int randChild = 0;
+		Node<String> currentNodeP1 = p1;
+		Node<String> currentNodeP2 = p2;
 		
+		for (int i=0; i<p1Cutoff; i++) {
+			randChild = r.nextInt((1 - 0) + 1);
+			if (currentNodeP1.children[randChild] != null) {
+				currentNodeP1 = currentNodeP1.children[randChild];
+			}
+			else {
+				currentNodeP1 = currentNodeP1.parent;
+				break;
+			}
+			
+			
+		}
+		
+		int childP1Num = randChild;
 
-		String val1 = parent1.value;
-		String val2 = parent2.value;
-		Node<String> newRoot1 = new Node<String>();
-		Node<String> newRoot2 = new Node<String>();
-
-		newRoot1.value = val1;
-		newRoot1.children[0] = parent1.children[0];
-		newRoot1.children[1] = parent2.children[1];
-		parent1.children[0].parent = newRoot1;
-		parent2.children[0].parent = newRoot1;
-
-		newRoot2.value = val2;
-		newRoot2.children[0] = parent2.children[0];
-		newRoot2.children[1] = parent1.children[1];
-		parent1.children[1].parent = newRoot2;
-		parent2.children[1].parent = newRoot2;
-
-		children[0] = newRoot1;
-		children[1] = newRoot2;
+		for (int i=0; i<p2Cutoff; i++) {
+			randChild = r.nextInt((1 - 0) + 1);
+			if (currentNodeP2.children[randChild] != null) {
+				currentNodeP2 = currentNodeP2.children[randChild];
+			}
+			else {
+				currentNodeP2 = currentNodeP2.parent;
+				break;
+			}
+		}
+		
+		int childP2Num = randChild;
+		
+		currentNodeP1.parent.children[childP1Num] = currentNodeP2;
+		currentNodeP2.parent = currentNodeP1.parent;
+		
+		currentNodeP2.parent.children[childP2Num] = currentNodeP1;
+		currentNodeP1.parent = currentNodeP2.parent;
+		
+		children[0] = p1;
+		children[1] = p2;
 		return children;
 	}
 
