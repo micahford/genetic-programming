@@ -21,6 +21,7 @@ public class GP {
 	}
 
 	public static class Node<T> {
+		private int numNodes;
 		private String value;
 		private Node<T> parent;
 		private Node<String>[] children = new Node[2];
@@ -50,10 +51,39 @@ public class GP {
 		rootNode.value = randOperator();
 		Node<String> curr = rootNode;
 		treeHelper(curr, curr.depthFromRoot);
+		int originalNumNodes = (int)Math.pow(2, maxdepth+1) - 1;
+		rootNode = prune(rootNode);
 		return rootNode;
 	}
 
+	//takes a uniform binary tree and "prunes" it creating a jagged binary tree.
+	private static Node<String> prune(Node<String> n){
+		Node<String> head = n;
+		Random r = new Random();
+		int depth = r.nextInt(maxdepth);
+		int i = 0;
+		while(i < depth -1){
+			if(r.nextDouble()<.5) n = n.children[0];
+			else n = n.children[1];
+			i++;
+		}
+		//now, prune:
+		if(r.nextDouble()<.5) {
+			n.children[0].value = randNum();
+			n.children[0].children[0] = null; n.children[0].children[1] = null;
+
+		} 
+		else {
+			n.children[1].value= randNum();
+			n.children[1].children[0] = null; n.children[1].children[1] = null;
+
+		}
+				
+		return head;
+	}
+	
 	public static void treeHelper(Node<String> currentNode, int depth) {
+		Random rand = new Random();
 		if (depth == maxdepth) {
 			return;
 		} else {
@@ -76,6 +106,7 @@ public class GP {
 			n2.parent = currentNode;
 			n2.depthFromRoot = currentNode.depthFromRoot + 1;
 			currentNode.children[1] = n2;
+			
 			treeHelper(n2, n2.depthFromRoot);
 		}
 	}
@@ -247,55 +278,32 @@ public class GP {
 		return score;
 	}
 
-// takes 2 trees, picks a random point on each to split them, 
-	//and mixes the partial trees to create 2 children
-	private static Node<String>[] makeChildren(Node<String> p1,
-			Node<String> p2) {
+	// takes 2 trees, and returns the 2 children created from them.
+	private static Node<String>[] makeChildren(Node<String> parent1,
+			Node<String> parent2) {
 
 		Node<String>[] children = new Node[2];
-		Random r = new Random();
-		int p1Cutoff = r.nextInt((p1.numNodes - 0) + 1);
-		int p2Cutoff = r.nextInt((p2.numNodes - 0) + 1);
-		int randChild = 0;
-		Node<String> currentNodeP1 = p1;
-		Node<String> currentNodeP2 = p2;
 		
-		for (int i=0; i<p1Cutoff; i++) {
-			randChild = r.nextInt((1 - 0) + 1);
-			if (currentNodeP1.children[randChild] != null) {
-				currentNodeP1 = currentNodeP1.children[randChild];
-			}
-			else {
-				currentNodeP1 = currentNodeP1.parent;
-				break;
-			}
-			
-			
-		}
-		
-		int childP1Num = randChild;
 
-		for (int i=0; i<p2Cutoff; i++) {
-			randChild = r.nextInt((1 - 0) + 1);
-			if (currentNodeP2.children[randChild] != null) {
-				currentNodeP2 = currentNodeP2.children[randChild];
-			}
-			else {
-				currentNodeP2 = currentNodeP2.parent;
-				break;
-			}
-		}
-		
-		int childP2Num = randChild;
-		
-		currentNodeP1.parent.children[childP1Num] = currentNodeP2;
-		currentNodeP2.parent = currentNodeP1.parent;
-		
-		currentNodeP2.parent.children[childP2Num] = currentNodeP1;
-		currentNodeP1.parent = currentNodeP2.parent;
-		
-		children[0] = p1;
-		children[1] = p2;
+		String val1 = parent1.value;
+		String val2 = parent2.value;
+		Node<String> newRoot1 = new Node<String>();
+		Node<String> newRoot2 = new Node<String>();
+
+		newRoot1.value = val1;
+		newRoot1.children[0] = parent1.children[0];
+		newRoot1.children[1] = parent2.children[1];
+		parent1.children[0].parent = newRoot1;
+		parent2.children[0].parent = newRoot1;
+
+		newRoot2.value = val2;
+		newRoot2.children[0] = parent2.children[0];
+		newRoot2.children[1] = parent1.children[1];
+		parent1.children[1].parent = newRoot2;
+		parent2.children[1].parent = newRoot2;
+
+		children[0] = newRoot1;
+		children[1] = newRoot2;
 		return children;
 	}
 
@@ -337,6 +345,28 @@ public class GP {
 		return null;
 	}
 
+	private static Node<String> mutate(Node<String> n){
+		Node<String> head = n;
+		Random r = new Random();
+		while ((n.children[0]!=null)||(n.children[1]!=null)){
+			double mutateThisNode = r.nextDouble();
+			if(mutateThisNode < .2) { //mutate this node
+				n.value = randOperator();
+				return head;
+			}
+			double whichChild = r.nextDouble();
+
+			if(whichChild<.5){
+				n = n.children[0];
+			}else {
+				n = n.children[1];
+			}
+		}
+		n.value = randNum(); //if it's reached to here, it is at a leaf.
+		return head;
+	}
+	
+	
 	private static double getFittestTree(LinkedList<Node<String>> l)
 			throws FileNotFoundException {
 		double min = 99999999;
@@ -353,9 +383,14 @@ public class GP {
 
 	public static void main(String args[]) throws FileNotFoundException {
 
-		int numberOfTrees = 1000;
+		int numberOfTrees = 500;
 		LinkedList<Node<String>> parents = new LinkedList<Node<String>>();
 		GP gp = new GP("+");
+		
+		Node<String> test = gp.createBinaryTree();
+		//printTree(test);
+		System.out.println(valueOfTree(test, 2));
+		//System.exit(1);
 		for (int i = 0; i < numberOfTrees; i++) {
 			parents.add(gp.createBinaryTree());
 		}
@@ -367,7 +402,7 @@ public class GP {
 
 		LinkedList<Node<String>> children = new LinkedList<Node<String>>();
 
-		for (int i = 0; i < 15; i++) {
+		for (int i = 0; i < 10; i++) {
 			double totalScore = getMaxKey(probabilityDist);
 
 			System.out.println("gen: " + (i + 1));
@@ -385,6 +420,13 @@ public class GP {
 				// fitnessScore(parent1));
 				// System.out.println("Parent selected -- score: " +
 				// fitnessScore(parent2));
+				double mutateChance = .1;
+				if(rn.nextDouble()<mutateChance){
+					childs[0]=mutate(childs[0]);
+				}
+				if(rn.nextDouble()<mutateChance){
+					childs[1]=mutate(childs[1]);
+				}
 
 				children.add(parent1);
 				children.add(parent2);
