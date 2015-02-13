@@ -21,11 +21,39 @@ public class GP {
 	}
 
 	public static class Node<T> {
+		
 		private int numNodes;
 		private String value;
 		private Node<T> parent;
 		private Node<String>[] children = new Node[2];
 		private int depthFromRoot = 0;
+		
+		
+	
+	}
+	//INCOMPLETE
+	private static Node<String> copySubtree(Node<String> n){
+		Node<String> copy = new Node<String>();
+		
+		Stack<Node<String>> stack = new Stack<Node<String>>();
+		stack.push(n);
+		while(!stack.isEmpty()){
+			Node<String> curr =stack.pop();
+			Node<String> temp = new Node<String>();
+			
+			if(curr.children[0]!=null) {
+				copy.children[0] = curr.children[0];
+				copy.children[0].parent = curr;
+				stack.push(curr.children[0]);
+			}
+			if(curr.children[1]!=null) {
+				copy.children[1] = curr.children[1];
+				stack.push(curr.children[1]);
+			}
+		}
+		return copy;
+		
+		
 	}
 
 	private static String randOperator() {
@@ -60,14 +88,20 @@ public class GP {
 	private static Node<String> prune(Node<String> n){
 		Node<String> head = n;
 		Random r = new Random();
-		int depth = r.nextInt(maxdepth);
+		int depth = r.nextInt(maxdepth+1);
 		int i = 0;
 		while(i < depth -1){
-			if(r.nextDouble()<.5) n = n.children[0];
-			else n = n.children[1];
+			if(r.nextDouble()<.5&&n.children[0]!=null) {
+				
+				n = n.children[0];
+			}
+			else if(n.children[1]!=null){
+				n = n.children[1];
+			}
 			i++;
 		}
-		//now, prune:
+
+	
 		if(r.nextDouble()<.5) {
 			n.children[0].value = randNum();
 			n.children[0].children[0] = null; n.children[0].children[1] = null;
@@ -250,7 +284,8 @@ public class GP {
 		} else if (op == "*") {
 			return val1 * val2;
 		} else
-			return val2 / val1;
+			if(val1 == 0.00) return 1000;
+			else return val2 / val1;
 	}
 
 	// returns true if string s is an operator
@@ -274,7 +309,7 @@ public class GP {
 			x += .01;
 		}
 		score = sumOfVariancesSq;
-
+		if(getSize(foo)==3){score =score + 2;} //makes score higher (worse) if size is 3.
 		return score;
 	}
 
@@ -306,13 +341,76 @@ public class GP {
 		children[1] = newRoot2;
 		return children;
 	}
-
+	
+	private static Node<String>[] makeChildrenRandom(Node<String> parent1,
+			Node<String> parent2) {
+		Random r = new Random();
+		
+		
+		
+//		int size1 = getSize(parent1);
+//		int size2 = getSize(parent2);
+//		
+//		int cutoff1 = r.nextInt(size1)+1;
+//		int cutoff2 = r.nextInt(size2)+1;
+//
+//		Stack<Node<String>> stack = new Stack<Node<String>>();
+//		stack.push(parent1);
+//		
+//		int counter = 0;
+//		Node<String> splitpt1 = new Node<String>();
+//		while(counter<cutoff1){
+//			splitpt1 =stack.pop();
+//			if(splitpt1.children[0]!=null) stack.push(splitpt1.children[0]);
+//			if(splitpt1.children[1]!=null) stack.push(splitpt1.children[1]);
+//			counter++;
+//		}
+//		counter = 0;
+//		Node<String> splitpt2 = new Node<String>();
+//		while(counter<cutoff2){
+//			splitpt2 =stack.pop();
+//			if(splitpt2.children[0]!=null) stack.push(splitpt2.children[0]);
+//			if(splitpt2.children[1]!=null) stack.push(splitpt2.children[1]);
+//			counter++;
+//		}
+//		Node<String> temp = new Node<String>();
+//		temp = splitpt2;
+//		if(isLeftChild(splitpt2)) splitpt2.parent.children[0] = temp;
+//		else temp.parent.children[1] = temp;
+//		
+//		splitpt2 = splitpt1;
+		
+		
+		
+		
+		//splitpt1 = temp;
+		
+		return null;
+	}
+	
+	private static int getSize(Node<String> n){
+		int counter = 0;
+		Stack<Node<String>> stack = new Stack<Node<String>>();
+		stack.push(n);
+		while(!stack.isEmpty()){
+			Node<String> curr =stack.pop();
+			counter++;
+			if(curr.children[0]!=null) stack.push(curr.children[0]);
+			if(curr.children[1]!=null) stack.push(curr.children[1]);
+		}
+		return counter;
+	}
+	
+	//returns true if Node n is a left child.
+	private static boolean isLeftChild(Node<String> n){
+		return (n.parent.children[0] == n);
+	}
+	
 	private static Map<Double, Node<String>> makeProbabilityDistribution(
 			LinkedList<Node<String>> population) throws FileNotFoundException {
 		double totalScore = 0.0;
 		Map<Double, Node<String>> reciprocalMap = new TreeMap<Double, Node<String>>();
 		for (int i = 0; i < population.size(); i++) {
-			GP gp = new GP("+");
 			Node<String> tree = population.get(i);
 			double score = 1.0 / fitnessScore(tree) + 1;
 
@@ -326,8 +424,9 @@ public class GP {
 	private static double getMaxKey(Map<Double, Node<String>> m) {
 		double max = 0;
 		for (double d : m.keySet()) {
-			if (d > max)
+			if (d > max) {
 				max = d;
+			}
 		}
 		return max;
 
@@ -385,18 +484,18 @@ public class GP {
 
 		int numberOfTrees = 500;
 		LinkedList<Node<String>> parents = new LinkedList<Node<String>>();
-		GP gp = new GP("+");
+		//GP gp = new GP("+");
 		
-		Node<String> test = gp.createBinaryTree();
+		//Node<String> test = gp.createBinaryTree();
 		//printTree(test);
-		System.out.println(valueOfTree(test, 2));
+//		System.out.println(getSize(test));
 		//System.exit(1);
 		for (int i = 0; i < numberOfTrees; i++) {
+			GP gp = new GP(randOperator());
 			parents.add(gp.createBinaryTree());
 		}
 
 		Map<Double, Node<String>> probabilityDist = makeProbabilityDistribution(parents);
-		// double totalScore = getMaxKey(probabilityDist);
 
 		Random rn = new Random();
 
@@ -416,11 +515,8 @@ public class GP {
 				Node<String> parent2 = getParent(num2, probabilityDist);
 				Node<String>[] childs = makeChildren(parent1, parent2);
 
-				// System.out.println("Parent selected -- score: " +
-				// fitnessScore(parent1));
-				// System.out.println("Parent selected -- score: " +
-				// fitnessScore(parent2));
-				double mutateChance = .1;
+
+				double mutateChance = .2;
 				if(rn.nextDouble()<mutateChance){
 					childs[0]=mutate(childs[0]);
 				}
@@ -446,14 +542,5 @@ public class GP {
 				getFittestTree(parents));
 		System.out.printf("Fittest score of children = %f\n\n",
 				getFittestTree(children));
-
-		// for(Node<String> n: children){
-		// System.out.println("Score: " + fitnessScore(n));
-		// }
-		int x = 2; // **the parameter to our tree**.
-
-		// Node<String> foo = gp.createBinaryTree();
-		// //printTree(foo); //prints tree with x's.
-
 	}
 }
